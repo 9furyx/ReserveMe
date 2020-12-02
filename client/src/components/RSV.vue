@@ -6,12 +6,50 @@
         <hr />
         <br /><br />
         <alert :message="message" v-if="showMessage"></alert>
+        <b-button-group>
+          <button
+            type="button"
+            class="btn btn-success btn-sm"
+            v-b-modal.login-modal
+            style="position:relative;top:-140px;left:900px"
+            v-if="!ifSignIn_user && !ifSignIn_admin"
+          >
+            Login
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            v-b-modal.signup-modal
+            v-if="!ifSignIn_user && !ifSignIn_admin"
+            style="position:relative;top:-140px;left:900px"
+          >
+            SignUp
+          </button>
+        </b-button-group>
         <button
           type="button"
           class="btn btn-success btn-sm"
-          v-b-modal.login-modal
+          v-if="ifSignIn_user"
+          @click="onReserve"
         >
-          Login
+          make reservation
+        </button>
+        <button
+          type="button"
+          class="btn btn-success btn-sm"
+          v-if="ifSignIn_admin"
+          @click="onReserve"
+        >
+          add reservation
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          v-if="ifSignIn_user || ifSignIn_admin"
+          @click="logOut"
+          style="position:relative;top:-140px;left:900px"
+        >
+          log out
         </button>
         <br /><br />
         <table class="table table-hover">
@@ -32,13 +70,18 @@
                 <div class="btn-group" role="group">
                   <button
                     type="button"
-                    class="btn btn-warning btn-sm"
+                    class="btn btn-danger btn-sm"
+                    @click="cancleRsv"
                   >
-                    Select
-                  </button>
-
-                  <button type="button" class="btn btn-danger btn-sm">
                     Cancle
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-warning btn-sm"
+                    v-if="ifSignIn_admin"
+                    @click="modifyRsv"
+                  >
+                    modify reservation
                   </button>
                 </div>
               </td>
@@ -47,6 +90,7 @@
         </table>
       </div>
     </div>
+
     <b-modal ref="LoginModal" id="login-modal" title="User Login" hide-footer>
       <b-form @submit="onSubmit" @reset="onReset" class="w-100">
         <b-form-group
@@ -84,6 +128,49 @@
         </b-button-group>
       </b-form>
     </b-modal>
+
+    <b-modal
+      ref="SignUpModal"
+      id="signup-modal"
+      title="User signup"
+      hide-footer
+    >
+      <b-form @submit="onSignup" @reset="onReset" class="w-100">
+        <b-form-group
+          id="form-email-group"
+          label="Email:"
+          label-for="form-email-input"
+        >
+          <b-form-input
+            id="form-email-input"
+            type="text"
+            v-model="LoginForm.email"
+            required
+            placeholder="Enter Email"
+          >
+          </b-form-input>
+        </b-form-group>
+        <b-form-group
+          id="form-pw-group"
+          label="Password:"
+          label-for="form-pw-input"
+        >
+          <b-form-input
+            id="form-pw-input"
+            type="text"
+            v-model="LoginForm.password"
+            required
+            placeholder="Enter Password"
+          >
+          </b-form-input>
+        </b-form-group>
+        <b-form-group id="form-login-group"> </b-form-group>
+        <b-button-group>
+          <b-button type="submit" variant="primary">Signup</b-button>
+          <b-button type="reset" variant="danger">Reset</b-button>
+        </b-button-group>
+      </b-form>
+    </b-modal>
   </div>
 </template>
 
@@ -106,6 +193,8 @@ export default {
       },
       message: 'Hi!',
       showMessage: false,
+      ifSignIn_user: false,
+      ifSignIn_admin: false,
     };
   },
   components: {
@@ -128,15 +217,29 @@ export default {
     },
     login(payload) {
       const path = 'http://localhost:5000/login';
-      axios
-        .post(path, payload)
-        .then((res) => {
-          this.user_data = res.data;
-          this.message = 'Successfully logged in!';
-          this.showMessage = true;
-          this.get_list();
-        });
+      axios.post(path, payload).then((res) => {
+        this.user_data = res.data;
+        this.message = 'Successfully logged in!';
+        this.showMessage = true;
+        if (res.is_admin === true) {
+          // I am not sure if it is right
+          this.ifSignIn_admin = true;
+        } else {
+          this.ifSignIn_user = true;
+        }
+        this.get_list();
+      });
     },
+    SignUp(payload) {
+      const path = 'http://localhost:5000/signup'; // check if it is correct
+      axios.post(path, payload).then((res) => {
+        this.user_data = res.data;
+        this.message = 'Successfully signed up!';
+        this.showMessage = true;
+        this.get_list();
+      });
+    },
+
     initForm() {
       this.LoginForm.email = '';
       this.LoginForm.password = '';
@@ -156,8 +259,32 @@ export default {
       this.$refs.LoginModal.hide();
       this.initForm();
     },
+    onSignup(evt) {
+      evt.preventDefault();
+      this.$refs.SignUpModal.hide();
+      const payload = {
+        email: this.LoginForm.email,
+        // I used the same form
+        password: this.LoginForm.password,
+      };
+      this.SignUp(payload);
+      this.initForm();
+    },
+    logOut() {
+      this.ifSignIn_user = false;
+      this.ifSignIn_user = false;
+    },
+    addRsv() {
+
+    },
+    // you can choose to add these functions
+    cancleRsv() {
+
+    },
+    modifyRsv() {
+
+    },
   },
-  created() {
-  },
+  created() {},
 };
 </script>
