@@ -23,33 +23,25 @@
             v-if="!ifSignIn_user && !ifSignIn_admin"
             style="position:relative;top:-140px;left:900px"
           >
-            SignUp
+            Signup
           </button>
         </b-button-group>
         <button
           type="button"
           class="btn btn-success btn-sm"
-          v-if="ifSignIn_user"
-          @click="onReserve"
-        >
-          make reservation
-        </button>
-        <button
-          type="button"
-          class="btn btn-success btn-sm"
           v-if="ifSignIn_admin"
-          @click="onReserve"
+          @click="onReset"
         >
-          add reservation
+          Add Event
         </button>
         <button
           type="button"
           class="btn btn-primary"
           v-if="ifSignIn_user || ifSignIn_admin"
-          @click="logOut"
+          @click="logout"
           style="position:relative;top:-140px;left:900px"
         >
-          log out
+          Logout
         </button>
         <br /><br />
         <table class="table table-hover">
@@ -65,15 +57,16 @@
             <tr v-for="(rsv, index) in rsvs" :key="index">
               <td>{{ rsv.rsv_name }}</td>
               <td>{{ rsv.due_date }}</td>
-              <td>{{ rsv.num_limit }}/{{ rsv.num_now }}</td>
+              <td>{{ rsv.num_now }}/{{ rsv.num_limit }}</td>
               <td>
                 <div class="btn-group" role="group">
                   <button
                     type="button"
                     class="btn btn-danger btn-sm"
-                    @click="cancleRsv"
+                    v-if="ifSignIn_admin"
+                    @click="deleteRsv"
                   >
-                    Cancle
+                    Delete
                   </button>
                   <button
                     type="button"
@@ -81,7 +74,23 @@
                     v-if="ifSignIn_admin"
                     @click="modifyRsv"
                   >
-                    modify reservation
+                    Modify
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-warning btn-sm"
+                    v-if="ifSignIn_user"
+                    @click="MakeRsv"
+                  >
+                    Select
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-danger btn-sm"
+                    v-if="ifSignIn_user"
+                    @click="cancleRsv"
+                  >
+                    Cancle
                   </button>
                 </div>
               </td>
@@ -132,10 +141,24 @@
     <b-modal
       ref="SignUpModal"
       id="signup-modal"
-      title="User signup"
+      title="User Signup"
       hide-footer
     >
       <b-form @submit="onSignup" @reset="onReset" class="w-100">
+        <b-form-group
+          id="form-username-group"
+          label="Username:"
+          label-for="form-username-input"
+        >
+          <b-form-input
+            id="form-username-input"
+            type="text"
+            v-model="SignUpForm.username"
+            required
+            placeholder="Enter Username"
+          >
+          </b-form-input>
+        </b-form-group>
         <b-form-group
           id="form-email-group"
           label="Email:"
@@ -144,7 +167,7 @@
           <b-form-input
             id="form-email-input"
             type="text"
-            v-model="LoginForm.email"
+            v-model="SignUpForm.email"
             required
             placeholder="Enter Email"
           >
@@ -158,7 +181,7 @@
           <b-form-input
             id="form-pw-input"
             type="text"
-            v-model="LoginForm.password"
+            v-model="SignUpForm.password"
             required
             placeholder="Enter Password"
           >
@@ -188,6 +211,11 @@ export default {
         selected_uuid: '',
       },
       LoginForm: {
+        email: '',
+        password: '',
+      },
+      SignUpForm: {
+        username: '',
         email: '',
         password: '',
       },
@@ -221,8 +249,7 @@ export default {
         this.user_data = res.data;
         this.message = 'Successfully logged in!';
         this.showMessage = true;
-        if (res.is_admin === true) {
-          // I am not sure if it is right
+        if (res.data.is_admin === true) {
           this.ifSignIn_admin = true;
         } else {
           this.ifSignIn_user = true;
@@ -230,8 +257,35 @@ export default {
         this.get_list();
       });
     },
+    logout() {
+      const path = 'http://localhost:5000/logout';
+      const token = this.user_data.access_token;
+      const payload = {
+        refresh_token: this.user_data.refresh_token,
+      };
+      axios
+        .post(path, payload, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token} `,
+          },
+        })
+        .then((res) => {
+          this.logout_dat = res.data;
+          this.message = 'Successfuly logged out!';
+          if (this.logout_dat.status === 'invalidated') {
+            this.user_data = '';
+            this.rsvs = '';
+            this.showMessage = 'Successfuly logged out!';
+          } else {
+            this.showMessage = 'Log out failed.';
+          }
+          this.ifSignIn_user = false;
+          this.ifSignIn_admin = false;
+        });
+    },
     SignUp(payload) {
-      const path = 'http://localhost:5000/signup'; // check if it is correct
+      const path = 'http://localhost:5000/signup';
       axios.post(path, payload).then((res) => {
         this.user_data = res.data;
         this.message = 'Successfully signed up!';
@@ -243,6 +297,9 @@ export default {
     initForm() {
       this.LoginForm.email = '';
       this.LoginForm.password = '';
+      this.SignUpForm.username = '';
+      this.SignUpForm.email = '';
+      this.SignUpForm.password = '';
     },
     onSubmit(evt) {
       evt.preventDefault();
@@ -263,16 +320,12 @@ export default {
       evt.preventDefault();
       this.$refs.SignUpModal.hide();
       const payload = {
-        email: this.LoginForm.email,
-        // I used the same form
-        password: this.LoginForm.password,
+        username: this.SignUpForm.username,
+        email: this.SignUpForm.email,
+        password: this.SignUpForm.password,
       };
       this.SignUp(payload);
       this.initForm();
-    },
-    logOut() {
-      this.ifSignIn_user = false;
-      this.ifSignIn_user = false;
     },
     addRsv() {
 

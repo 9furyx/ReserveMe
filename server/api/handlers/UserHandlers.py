@@ -59,8 +59,10 @@ class Login(Resource):
 
         if user.user_role == 'user':
             access_token = user.generate_token(0)
+            is_admin = False
         elif user.user_role == 'admin':
             access_token = user.generate_token(1)
+            is_admin = True
         else:
             return error.INVALID_INPUT_422
         if user.user_rev_id is not None:
@@ -78,7 +80,8 @@ class Login(Resource):
         refresh_token = jwt.encode(payload,
                                    os.environ['SECRET_KEY_REFRESH'],
                                    algorithm='HS256')
-        return {'access_token': access_token.decode('UTF-8'), 'refresh_token': refresh_token.decode('UTF-8'), 'selected_uuid': str(user.user_rev_id)}
+        
+        return {'access_token': access_token.decode('UTF-8'), 'refresh_token': refresh_token.decode('UTF-8'), 'selected_uuid': str(user.user_rev_id),'is_admin': is_admin}
 
 
 class Logout(Resource):
