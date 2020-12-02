@@ -11,7 +11,7 @@
             type="button"
             class="btn btn-success btn-sm"
             v-b-modal.login-modal
-            style="position:relative;top:-140px;left:900px"
+            style="position: relative; top: -140px; left: 900px"
             v-if="!ifSignIn_user && !ifSignIn_admin"
           >
             Login
@@ -21,7 +21,7 @@
             class="btn btn-primary"
             v-b-modal.signup-modal
             v-if="!ifSignIn_user && !ifSignIn_admin"
-            style="position:relative;top:-140px;left:900px"
+            style="position: relative; top: -140px; left: 900px"
           >
             Signup
           </button>
@@ -29,17 +29,28 @@
         <button
           type="button"
           class="btn btn-success btn-sm"
-          v-if="ifSignIn_admin"
-          @click="onReset"
+          v-if="ifSignIn_admin||ifSignIn_user"
+          @click="addRsv"
+          v-b-modal.makersv-modal
         >
           Add Event
         </button>
         <button
           type="button"
+          class="btn btn-success btn-sm"
+          v-if="ifSignIn_user"
+          @click="addRsv"
+          v-b-modal.makersv-modal
+        >
+          Make RSV
+        </button>
+
+        <button
+          type="button"
           class="btn btn-primary"
           v-if="ifSignIn_user || ifSignIn_admin"
           @click="logout"
-          style="position:relative;top:-140px;left:900px"
+          style="position: relative; top: -140px; left: 900px"
         >
           Logout
         </button>
@@ -180,7 +191,7 @@
         >
           <b-form-input
             id="form-pw-input"
-            type="text"
+            type="password"
             v-model="SignUpForm.password"
             required
             placeholder="Enter Password"
@@ -190,6 +201,71 @@
         <b-form-group id="form-login-group"> </b-form-group>
         <b-button-group>
           <b-button type="submit" variant="primary">Signup</b-button>
+          <b-button type="reset" variant="danger">Reset</b-button>
+        </b-button-group>
+      </b-form>
+    </b-modal>
+    <b-modal
+      ref="MakeRSVModal"
+      id="makersv-modal"
+      title="Make Reservation"
+      hide-footer
+    >
+      <b-form @submit="addRsv" @reset="onReset" class="w-100">
+        <b-form-group
+          id="form-rsvname-group"
+          label="RSVname:"
+          label-for="form-rsvname-input"
+        >
+          <b-form-input
+            id="form-rsvname-input"
+            type="text"
+            v-model="RSVForm.rsvname"
+            required
+            placeholder="Enter reservation name"
+          >
+          </b-form-input>
+        </b-form-group>
+        <b-form-group
+          id="form-num-group"
+          label="num:"
+          label-for="form-num-input"
+        >
+          <b-form-input
+            id="form-num-input"
+            type="text"
+            v-model="RSVForm.num"
+            required
+            placeholder="Enter num"
+          >
+          </b-form-input>
+        </b-form-group>
+        <b-form-group
+          id="form-time-group"
+          label="Time:"
+          label-for="form-time-input"
+        >
+          <b-form-input
+            id="form-date-input"
+            type="date"
+            min=“2020-12-2”
+            max=“2030-12-30”
+            v-model="RSVForm.date"
+            required
+            placeholder="Enter date"
+          >
+          </b-form-input>
+          <b-form-input
+            id="form-time-input"
+            type="time"
+            v-model="RSVForm.time"
+            required
+            placeholder="Enter time"
+          >
+          </b-form-input>
+        </b-form-group>
+        <b-button-group>
+          <b-button type="submit" variant="primary">Confirm</b-button>
           <b-button type="reset" variant="danger">Reset</b-button>
         </b-button-group>
       </b-form>
@@ -218,6 +294,13 @@ export default {
         username: '',
         email: '',
         password: '',
+      },
+      RSVForm: {
+        rsvname: '',
+        num: 10,
+        // need to changed here
+        date: '',
+        time: '',
       },
       message: 'Hi!',
       showMessage: false,
@@ -300,6 +383,9 @@ export default {
       this.SignUpForm.username = '';
       this.SignUpForm.email = '';
       this.SignUpForm.password = '';
+      this.RSVForm.rsvname = '';
+      this.RSVForm.num = '';
+      this.RSVForm.time = '';
     },
     onSubmit(evt) {
       evt.preventDefault();
@@ -327,16 +413,36 @@ export default {
       this.SignUp(payload);
       this.initForm();
     },
-    addRsv() {
+    addRsv(evt) {
+      evt.preventDefault();
+      this.$refs.MakeRSVModal.hide();
+      const payload = {
+        rsv_name: this.RSVForm.rsvname,
+        num_limit: this.RSVForm.num,
+        due_date: this.RSVForm.time + this.RSVForm.date,
+      };
 
+      const path = 'http://localhost:5000/add_srv';// probably you should change it
+      const token = this.user_data.access_token;
+
+      axios
+        .post(path, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token} `,
+          },
+          data: payload,
+        })
+        .then(() => {
+          this.message = 'Successfully make reservation!';
+          this.showMessage = true;
+          this.get_list();
+          this.initForm();
+        });
     },
     // you can choose to add these functions
-    cancleRsv() {
-
-    },
-    modifyRsv() {
-
-    },
+    cancleRsv() {},
+    modifyRsv() {},
   },
   created() {},
 };
