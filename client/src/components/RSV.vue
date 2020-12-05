@@ -29,20 +29,11 @@
         <button
           type="button"
           class="btn btn-success btn-sm"
-          v-if="ifSignIn_admin||ifSignIn_user"
+          v-if="ifSignIn_admin "
           @click="addRsv"
           v-b-modal.makersv-modal
         >
           Add Event
-        </button>
-        <button
-          type="button"
-          class="btn btn-success btn-sm"
-          v-if="ifSignIn_user"
-          @click="addRsv"
-          v-b-modal.makersv-modal
-        >
-          Make RSV
         </button>
 
         <button
@@ -91,7 +82,7 @@
                     type="button"
                     class="btn btn-warning btn-sm"
                     v-if="ifSignIn_user"
-                    @click="MakeRsv"
+                    @click="selectRsv"
                   >
                     Select
                   </button>
@@ -120,7 +111,7 @@
         >
           <b-form-input
             id="form-email-input"
-            type="text"
+            type="email"
             v-model="LoginForm.email"
             required
             placeholder="Enter Email"
@@ -134,7 +125,7 @@
         >
           <b-form-input
             id="form-pw-input"
-            type="text"
+            type="password"
             v-model="LoginForm.password"
             required
             placeholder="Enter Password"
@@ -177,7 +168,7 @@
         >
           <b-form-input
             id="form-email-input"
-            type="text"
+            type="email"
             v-model="SignUpForm.email"
             required
             placeholder="Enter Email"
@@ -232,6 +223,7 @@
           label-for="form-num-input"
         >
           <b-form-input
+          autocomplete="off"
             id="form-num-input"
             type="text"
             v-model="RSVForm.num"
@@ -245,24 +237,8 @@
           label="Time:"
           label-for="form-time-input"
         >
-          <b-form-input
-            id="form-date-input"
-            type="date"
-            min=“2020-12-2”
-            max=“2030-12-30”
-            v-model="RSVForm.date"
-            required
-            placeholder="Enter date"
-          >
-          </b-form-input>
-          <b-form-input
-            id="form-time-input"
-            type="time"
-            v-model="RSVForm.time"
-            required
-            placeholder="Enter time"
-          >
-          </b-form-input>
+          <b-form-timepicker v-model="RSVForm.time" locale="en"></b-form-timepicker>
+          <b-form-datepicker v-model="RSVForm.date" class="mb-2"></b-form-datepicker>
         </b-form-group>
         <b-button-group>
           <b-button type="submit" variant="primary">Confirm</b-button>
@@ -369,8 +345,7 @@ export default {
     },
     SignUp(payload) {
       const path = 'http://localhost:5000/signup';
-      axios.post(path, payload).then((res) => {
-        this.user_data = res.data;
+      axios.post(path, payload).then(() => {
         this.message = 'Successfully signed up!';
         this.showMessage = true;
         this.get_list();
@@ -386,6 +361,7 @@ export default {
       this.RSVForm.rsvname = '';
       this.RSVForm.num = '';
       this.RSVForm.time = '';
+      this.RSVForm.date = '';
     },
     onSubmit(evt) {
       evt.preventDefault();
@@ -399,7 +375,10 @@ export default {
     },
     onReset(evt) {
       evt.preventDefault();
+      // Let me put it togther first, just convenient to test
       this.$refs.LoginModal.hide();
+      this.$refs.SignUpModal.hide();
+      this.$refs.MakeRSVModal.hide();
       this.initForm();
     },
     onSignup(evt) {
@@ -419,31 +398,31 @@ export default {
       const payload = {
         rsv_name: this.RSVForm.rsvname,
         num_limit: this.RSVForm.num,
-        due_date: this.RSVForm.time + this.RSVForm.date,
+        due_date: this.RSVForm.date + this.RSVForm.time,
       };
 
-      const path = 'http://localhost:5000/add_srv';// probably you should change it
+      const path = 'http://localhost:5000/add_srv'; // probably you should change it
       const token = this.user_data.access_token;
 
       axios
-        .post(path, {
+        .post(path, payload, {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token} `,
           },
-          data: payload,
         })
         .then(() => {
           this.message = 'Successfully make reservation!';
           this.showMessage = true;
           this.get_list();
-          this.initForm();
         });
+      this.initForm();
     },
     // you can choose to add these functions
     cancleRsv() {},
     modifyRsv() {},
   },
-  created() {},
+  created() {
+  },
 };
 </script>
