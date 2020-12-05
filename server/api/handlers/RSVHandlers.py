@@ -40,7 +40,7 @@ class ADD_RSV(Resource):
             return error.INVALID_INPUT_422
 
         new_uuid = uuid.uuid4()
-        datetime_object = datetime.strptime(due_date, '%b %d %Y %I:%M%p')
+        datetime_object = datetime.strptime(due_date, '%Y-%m-%d%H:%M:%S')
 
         rsv = Reservation(rsv_uuid=new_uuid, rsv_name=rsv_name,
                           due_date=datetime_object, num_limit=num_limit, num_now=0)

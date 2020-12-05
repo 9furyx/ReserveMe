@@ -29,7 +29,7 @@
         <button
           type="button"
           class="btn btn-success btn-sm"
-          v-if="ifSignIn_admin "
+          v-if="ifSignIn_admin"
           @click="addRsv"
           v-b-modal.makersv-modal
         >
@@ -125,7 +125,7 @@
         >
           <b-form-input
             id="form-pw-input"
-            type="password"
+            type="text"
             v-model="LoginForm.password"
             required
             placeholder="Enter Password"
@@ -223,7 +223,7 @@
           label-for="form-num-input"
         >
           <b-form-input
-          autocomplete="off"
+            autocomplete="off"
             id="form-num-input"
             type="text"
             v-model="RSVForm.num"
@@ -237,8 +237,10 @@
           label="Time:"
           label-for="form-time-input"
         >
-          <b-form-timepicker v-model="RSVForm.time" locale="en"></b-form-timepicker>
-          <b-form-datepicker v-model="RSVForm.date" class="mb-2"></b-form-datepicker>
+          <b-form-timepicker v-model="RSVForm.time" hourCycle="h23"></b-form-timepicker>
+          <p>{{RSVForm.time}}</p>
+          <b-form-datepicker v-model="RSVForm.date"></b-form-datepicker>
+          <p>{{RSVForm.date}}</p>
         </b-form-group>
         <b-button-group>
           <b-button type="submit" variant="primary">Confirm</b-button>
@@ -421,8 +423,9 @@ export default {
     // you can choose to add these functions
     cancleRsv() {},
     modifyRsv() {},
+    deleteRsv() {},
+    seclectRsv() {},
   },
-  created() {
-  },
+  created() {},
 };
 </script>
