@@ -57,7 +57,7 @@
           </thead>
           <tbody>
             <tr v-for="(rsv, index) in rsvs" :key="index">
-              <td>{{ rsv.rsv_name }}</td>
+              <td>{{ rsv.rsv_uuid }}</td>
               <td>{{ rsv.due_date }}</td>
               <td>{{ rsv.num_now }}/{{ rsv.num_limit }}</td>
               <td>
@@ -66,7 +66,7 @@
                     type="button"
                     class="btn btn-danger btn-sm"
                     v-if="ifSignIn_admin"
-                    @click="deleteRsv"
+                    @click="deleteRsv(rsv.rsv_uuid)"
                   >
                     Delete
                   </button>
@@ -74,7 +74,8 @@
                     type="button"
                     class="btn btn-warning btn-sm"
                     v-if="ifSignIn_admin"
-                    @click="modifyRsv"
+                    @click="passModifyArg(rsv.rsv_uuid)"
+                    v-b-modal.modifyrsv-modal
                   >
                     Modify
                   </button>
@@ -82,7 +83,7 @@
                     type="button"
                     class="btn btn-warning btn-sm"
                     v-if="ifSignIn_user"
-                    @click="selectRsv"
+                    @click="seclectRsv(rsv.rsv_uuid)"
                   >
                     Select
                   </button>
@@ -90,7 +91,7 @@
                     type="button"
                     class="btn btn-danger btn-sm"
                     v-if="ifSignIn_user"
-                    @click="cancleRsv"
+                    @click="cancleRsv(rsv.rsv_uuid)"
                   >
                     Cancle
                   </button>
@@ -237,10 +238,66 @@
           label="Time:"
           label-for="form-time-input"
         >
-          <b-form-timepicker v-model="RSVForm.time" hourCycle="h23"></b-form-timepicker>
-          <p>{{RSVForm.time}}</p>
+          <b-form-timepicker
+            v-model="RSVForm.time"
+            hourCycle="h23"
+          ></b-form-timepicker>
+          <p>{{ RSVForm.time }}</p>
           <b-form-datepicker v-model="RSVForm.date"></b-form-datepicker>
-          <p>{{RSVForm.date}}</p>
+          <p>{{ RSVForm.date }}</p>
+        </b-form-group>
+        <b-button-group>
+          <b-button type="submit" variant="primary">Confirm</b-button>
+          <b-button type="reset" variant="danger">Reset</b-button>
+        </b-button-group>
+      </b-form>
+    </b-modal>
+    <b-modal
+      ref="ModifyRSVModal"
+      id="modifyrsv-modal"
+      title="Modify Reservation"
+      hide-footer
+    >
+      <b-form @submit="modifyRsv" @reset="onReset" class="w-100">
+        <b-form-group
+          id="form-rsvname-group"
+          label="RSVname:"
+          label-for="form-rsvname-input"
+        >
+          <b-form-input
+            id="form-rsvname-input"
+            type="text"
+            v-model="RSVForm.rsvname"
+            required
+            placeholder="Enter reservation name"
+          >
+          </b-form-input>
+        </b-form-group>
+        <b-form-group
+          id="form-num-group"
+          label="num:"
+          label-for="form-num-input"
+        >
+          <b-form-input
+            autocomplete="off"
+            id="form-num-input"
+            type="text"
+            v-model="RSVForm.num"
+            required
+            placeholder="Enter num"
+          >
+          </b-form-input>
+        </b-form-group>
+        <b-form-group
+          id="form-time-group"
+          label="Time:"
+          label-for="form-time-input"
+        >
+          <b-form-timepicker
+            v-model="RSVForm.time"
+            hourCycle="h23"
+          ></b-form-timepicker>
+          <b-form-datepicker v-model="RSVForm.date"></b-form-datepicker>
         </b-form-group>
         <b-button-group>
           <b-button type="submit" variant="primary">Confirm</b-button>
@@ -264,6 +321,9 @@ export default {
         refresh_token: '',
         selected_uuid: '',
       },
+      user_email: '',
+      modify_uuid: '',
+      // I don't know how to deal with it , so...
       LoginForm: {
         email: '',
         password: '',
@@ -368,6 +428,7 @@ export default {
     onSubmit(evt) {
       evt.preventDefault();
       this.$refs.LoginModal.hide();
+      this.user_email = this.LoginForm.email;
       const payload = {
         email: this.LoginForm.email,
         password: this.LoginForm.password,
@@ -420,11 +481,107 @@ export default {
         });
       this.initForm();
     },
-    // you can choose to add these functions
-    cancleRsv() {},
-    modifyRsv() {},
-    deleteRsv() {},
-    seclectRsv() {},
+    passModifyArg(uuid) {
+      this.modify_uuid = uuid;
+    },
+    modifyRsv(evt) {
+      evt.preventDefault();
+      this.$refs.ModifyRSVModal.hide();
+      const payload = {
+        rsv_uuid: this.modify_uuid,
+        rsv_name: this.RSVForm.rsvname,
+        num_limit: this.RSVForm.num,
+        due_date: this.RSVForm.date + this.RSVForm.time,
+      };
+
+      const path = 'http://localhost:5000/modify_rsv';
+      const token = this.user_data.access_token;
+
+      axios
+        .post(path, payload, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token} `,
+          },
+        })
+        .then(() => {
+          this.message = 'Successfully modify reservation!';
+          this.showMessage = true;
+          this.get_list();
+        });
+      this.initForm();
+    },
+    deleteRsv(uuid) {
+      const path = 'http://localhost:5000//delete_rsv';
+      const token = this.user_data.access_token;
+      const payload = {
+        rsv_uuid: uuid,
+      };
+      axios
+        .post(path, payload, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token} `,
+          },
+        })
+        .then(() => {
+          this.message = 'successfully cancled!';
+          this.showMessage = true;
+          this.get_list();
+        })
+        .catch((error) => {
+          // what？
+          console.log(error);
+        });
+    },
+    cancleRsv(uuid) {
+      const path = 'http://localhost:5000//user_cancle_rsv';
+      const token = this.user_data.access_token;
+      const payload = {
+        rsv_uuid: uuid,
+        email: this.user_email,
+      };
+      axios
+        .post(path, payload, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token} `,
+          },
+        })
+        .then(() => {
+          this.message = 'successfully cancled!';
+          this.showMessage = true;
+          this.get_list();
+        })
+        .catch((error) => {
+          // what？
+          console.log(error);
+        });
+    },
+    seclectRsv(uuid) {
+      const path = 'http://localhost:5000//user_make_rsv';
+      const token = this.user_data.access_token;
+      const payload = {
+        rsv_uuid: uuid,
+        email: this.user_email,
+      };
+      axios
+        .post(path, payload, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token} `,
+          },
+        })
+        .then(() => {
+          this.message = 'successfully seclected!';
+          this.showMessage = true;
+          this.get_list();
+        })
+        .catch((error) => {
+          //
+          console.log(error);
+        });
+    },
   },
   created() {},
 };

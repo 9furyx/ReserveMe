@@ -86,7 +86,8 @@ class MODIFY_RSV(Resource):
         if rsv_name is not None:
             rsv.rsv_name = rsv_name
         if due_date is not None:
-            rsv.due_date = due_date
+            datetime_object = datetime.strptime(due_date, '%Y-%m-%d%H:%M:%S')
+            rsv.due_date = datetime_object
         if num_limit is not None:
             rsv.num_limit = num_limit
 
