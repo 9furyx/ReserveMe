@@ -5,7 +5,8 @@ from datetime import datetime, timedelta
 from flask import g
 from api.conf.auth import auth
 from api.database.database import db
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, ARRAY
+
 import api.errors as error
 import os
 

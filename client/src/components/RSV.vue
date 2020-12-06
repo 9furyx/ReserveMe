@@ -85,6 +85,15 @@
                   </button>
                   <button
                     type="button"
+                    class="btn btn-primary btn-sm"
+                    v-if="ifSignIn_admin"
+                    @click="Get_Member(rsv.rsv_uuid)"
+                    v-b-modal.listmember-modal
+                  >
+                    List
+                  </button>
+                  <button
+                    type="button"
                     class="btn btn-success btn-sm"
                     v-if="ifSignIn_user && show_select_button"
                     @click="seclectRsv(rsv.rsv_uuid)"
@@ -101,6 +110,9 @@
                   </button>
                 </div>
               </td>
+              <li v-for="(mem, index) in members" :key="index">
+                {{ mem.username }}
+              </li>
             </tr>
           </tbody>
         </table>
@@ -320,6 +332,7 @@ export default {
   data() {
     return {
       rsvs: [],
+      members: [],
       user_data: {
         access_token: '',
         refresh_token: '',
@@ -415,6 +428,23 @@ export default {
         this.message = 'Successfully signed up!';
         this.showMessage = true;
       });
+    },
+    Get_Member(uuid) {
+      const path = 'http://localhost:5000/get_member_list';
+      const token = this.user_data.access_token;
+      const payload = {
+        rsv_uuid: uuid,
+      };
+      axios
+        .post(path, payload, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token} `,
+          },
+        })
+        .then((res) => {
+          this.members = res.data;
+        });
     },
     initForm() {
       this.LoginForm.email = '';
@@ -512,7 +542,7 @@ export default {
       this.initForm();
     },
     deleteRsv(uuid) {
-      const path = 'http://localhost:5000//delete_rsv';
+      const path = 'http://localhost:5000/delete_rsv';
       const token = this.user_data.access_token;
       const payload = {
         rsv_uuid: uuid,

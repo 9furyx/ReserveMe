@@ -94,6 +94,26 @@ class MODIFY_RSV(Resource):
         db.session.commit()
         return {'status': 'Reservation modified'}
 
+class GET_MEMBER_LIST(Resource):
+    @staticmethod
+    @auth.login_required
+    @role_required.permission(1)
+    def post():
+        try:
+            rsv_uuid = request.json.get('rsv_uuid').strip()
+        except:
+            return error.INVALID_INPUT_422
+
+        if rsv_uuid is None:
+            return error.INVALID_INPUT_422
+
+        users = User.query.all()
+        list=[]
+        for user in users:
+            print(user.user_rev_id)
+            if str(user.user_rev_id) == str(rsv_uuid):
+                list.append({"username": user.username, "email": user.email})
+        return list
 
 class USER_MAKE_RSV(Resource):
     @staticmethod

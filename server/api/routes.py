@@ -4,7 +4,7 @@ from api.handlers.UserHandlers import (Login, Logout,
                                        RefreshToken, Signup, ResetPassword)
 
 from api.handlers.RSVHandlers import (
-    GET_RSV_LIST, ADD_RSV, DELETE_RSV, MODIFY_RSV, USER_MAKE_RSV, USER_CANCLE_RSV)
+    GET_RSV_LIST, GET_MEMBER_LIST, ADD_RSV, DELETE_RSV, MODIFY_RSV, USER_MAKE_RSV, USER_CANCLE_RSV)
 
 
 def generate_routes(app):
@@ -20,3 +20,5 @@ def generate_routes(app):
     api.add_resource(MODIFY_RSV, '/modify_rsv')
     api.add_resource(USER_MAKE_RSV, '/user_make_rsv')
     api.add_resource(USER_CANCLE_RSV, '/user_cancle_rsv')
+    api.add_resource(GET_MEMBER_LIST, '/get_member_list')
+    

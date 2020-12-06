@@ -52,7 +52,8 @@ class Login(Resource):
             return error.INVALID_INPUT_422
 
         user = User.query.filter_by(email=email).first()
-
+        if user is None:
+            return error.DOES_NOT_EXIST
         check_password_hash(password, user.password)
         if not check_password_hash(user.password, password):
             return error.DOES_NOT_EXIST
