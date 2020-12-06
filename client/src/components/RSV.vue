@@ -6,6 +6,7 @@
         <hr />
         <br /><br />
         <alert :message="message" v-if="showMessage"></alert>
+
         <b-button-group>
           <button
             type="button"
@@ -16,6 +17,7 @@
           >
             Login
           </button>
+
           <button
             type="button"
             class="btn btn-primary"
@@ -26,6 +28,7 @@
             Signup
           </button>
         </b-button-group>
+
         <button
           type="button"
           class="btn btn-success btn-sm"
@@ -46,6 +49,7 @@
           Logout
         </button>
         <br /><br />
+
         <table class="table table-hover">
           <thead>
             <tr>
@@ -57,7 +61,7 @@
           </thead>
           <tbody>
             <tr v-for="(rsv, index) in rsvs" :key="index">
-              <td>{{ rsv.rsv_uuid }}</td>
+              <td>{{ rsv.rsv_name }}</td>
               <td>{{ rsv.due_date }}</td>
               <td>{{ rsv.num_now }}/{{ rsv.num_limit }}</td>
               <td>
@@ -81,8 +85,8 @@
                   </button>
                   <button
                     type="button"
-                    class="btn btn-warning btn-sm"
-                    v-if="ifSignIn_user"
+                    class="btn btn-success btn-sm"
+                    v-if="ifSignIn_user && show_select_button"
                     @click="seclectRsv(rsv.rsv_uuid)"
                   >
                     Select
@@ -90,7 +94,7 @@
                   <button
                     type="button"
                     class="btn btn-danger btn-sm"
-                    v-if="ifSignIn_user"
+                    v-if="ifSignIn_user && rsv.rsv_uuid == selected_uuid"
                     @click="cancleRsv(rsv.rsv_uuid)"
                   >
                     Cancle
@@ -115,7 +119,7 @@
             type="email"
             v-model="LoginForm.email"
             required
-            placeholder="Enter Email"
+            placeholder="Your Email"
           >
           </b-form-input>
         </b-form-group>
@@ -129,7 +133,7 @@
             type="text"
             v-model="LoginForm.password"
             required
-            placeholder="Enter Password"
+            placeholder="Your Password"
           >
           </b-form-input>
         </b-form-group>
@@ -269,7 +273,7 @@
             type="text"
             v-model="RSVForm.rsvname"
             required
-            placeholder="Enter reservation name"
+            placeholder="Enter Event name"
           >
           </b-form-input>
         </b-form-group>
@@ -284,7 +288,7 @@
             type="text"
             v-model="RSVForm.num"
             required
-            placeholder="Enter num"
+            placeholder="Enter number limit"
           >
           </b-form-input>
         </b-form-group>
@@ -323,7 +327,6 @@ export default {
       },
       user_email: '',
       modify_uuid: '',
-      // I don't know how to deal with it , so...
       LoginForm: {
         email: '',
         password: '',
@@ -335,15 +338,15 @@ export default {
       },
       RSVForm: {
         rsvname: '',
-        num: 10,
-        // need to changed here
+        num: 0,
         date: '',
         time: '',
       },
-      message: 'Hi!',
+      message: '',
       showMessage: false,
       ifSignIn_user: false,
       ifSignIn_admin: false,
+      show_select_button: true,
     };
   },
   components: {
@@ -397,6 +400,7 @@ export default {
           if (this.logout_dat.status === 'invalidated') {
             this.user_data = '';
             this.rsvs = '';
+            this.user_email = '';
             this.showMessage = 'Successfuly logged out!';
           } else {
             this.showMessage = 'Log out failed.';
@@ -410,10 +414,8 @@ export default {
       axios.post(path, payload).then(() => {
         this.message = 'Successfully signed up!';
         this.showMessage = true;
-        this.get_list();
       });
     },
-
     initForm() {
       this.LoginForm.email = '';
       this.LoginForm.password = '';
@@ -438,7 +440,6 @@ export default {
     },
     onReset(evt) {
       evt.preventDefault();
-      // Let me put it togther first, just convenient to test
       this.$refs.LoginModal.hide();
       this.$refs.SignUpModal.hide();
       this.$refs.MakeRSVModal.hide();
@@ -463,8 +464,7 @@ export default {
         num_limit: this.RSVForm.num,
         due_date: this.RSVForm.date + this.RSVForm.time,
       };
-
-      const path = 'http://localhost:5000/add_srv'; // probably you should change it
+      const path = 'http://localhost:5000/add_srv';
       const token = this.user_data.access_token;
 
       axios
@@ -528,14 +528,10 @@ export default {
           this.message = 'successfully cancled!';
           this.showMessage = true;
           this.get_list();
-        })
-        .catch((error) => {
-          // what？
-          console.log(error);
         });
     },
     cancleRsv(uuid) {
-      const path = 'http://localhost:5000//user_cancle_rsv';
+      const path = 'http://localhost:5000/user_cancle_rsv';
       const token = this.user_data.access_token;
       const payload = {
         rsv_uuid: uuid,
@@ -550,37 +546,38 @@ export default {
         })
         .then(() => {
           this.message = 'successfully cancled!';
+          this.show_select_button = true;
           this.showMessage = true;
+          this.selected_uuid = '';
           this.get_list();
-        })
-        .catch((error) => {
-          // what？
-          console.log(error);
         });
     },
     seclectRsv(uuid) {
-      const path = 'http://localhost:5000//user_make_rsv';
+      const path = 'http://localhost:5000/user_make_rsv';
       const token = this.user_data.access_token;
-      const payload = {
-        rsv_uuid: uuid,
-        email: this.user_email,
-      };
-      axios
-        .post(path, payload, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token} `,
-          },
-        })
-        .then(() => {
-          this.message = 'successfully seclected!';
-          this.showMessage = true;
-          this.get_list();
-        })
-        .catch((error) => {
-          //
-          console.log(error);
-        });
+      if (this.selected_uuid) {
+        this.message = 'You can reserve only one event at once, please cancle first';
+        this.showMessage = true;
+      } else {
+        const payload = {
+          rsv_uuid: uuid,
+          email: this.user_email,
+        };
+        axios
+          .post(path, payload, {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token} `,
+            },
+          })
+          .then(() => {
+            this.message = 'successfully seclected!';
+            this.showMessage = true;
+            this.selected_uuid = uuid;
+            this.show_select_button = false;
+            this.get_list();
+          });
+      }
     },
   },
   created() {},

@@ -122,12 +122,10 @@ class USER_MAKE_RSV(Resource):
         make_date = datetime.utcnow()
         if rsv.due_date < make_date + timedelta(days=1):
             return error.RSV_EXPIRED
-        
-        rsv.num_now += 1
-        
 
         user.user_rev_id = rsv_uuid
-        
+        db.session.commit()
+        rsv.num_now += 1
         db.session.commit()
         return {'status': 'Reservation made'}
 
@@ -152,6 +150,9 @@ class USER_CANCLE_RSV(Resource):
         rsv = Reservation.query.filter_by(rsv_uuid=rsv_uuid).first()
         if rsv is None:
            return error.RSV_NOT_FOUND
+
+        if str(user.user_rev_id) != str(rsv_uuid):
+           return error.RSV_NOT_MATCH
 
         if rsv.num_now > 0:
             rsv.num_now -= 1
