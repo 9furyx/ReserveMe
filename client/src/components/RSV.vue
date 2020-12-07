@@ -110,9 +110,6 @@
                   </button>
                 </div>
               </td>
-              <li v-for="(mem, index) in members" :key="index">
-                {{ mem.username }}
-              </li>
             </tr>
           </tbody>
         </table>
@@ -142,7 +139,7 @@
         >
           <b-form-input
             id="form-pw-input"
-            type="text"
+            type="password"
             v-model="LoginForm.password"
             required
             placeholder="Your Password"
@@ -206,7 +203,20 @@
           >
           </b-form-input>
         </b-form-group>
-        <b-form-group id="form-login-group"> </b-form-group>
+        <b-form-group
+          id="form-pw-group"
+          label="Check password:"
+          label-for="form-chpw-input"
+        >
+          <b-form-input
+            id="form-chpw-input"
+            type="password"
+            v-model="SignUpForm.checkpassword"
+            required
+            placeholder="Check Password"
+          >
+          </b-form-input>
+        </b-form-group>
         <b-button-group>
           <b-button type="submit" variant="primary">Signup</b-button>
           <b-button type="reset" variant="danger">Reset</b-button>
@@ -242,7 +252,11 @@
           <b-form-input
             autocomplete="off"
             id="form-num-input"
-            type="text"
+            type="number"
+            min="1"
+            value="10"
+            max="100"
+            step="1"
             v-model="RSVForm.num"
             required
             placeholder="Enter num"
@@ -297,10 +311,14 @@
           <b-form-input
             autocomplete="off"
             id="form-num-input"
-            type="text"
+            type="number"
+            min="1"
+            value="10"
+            max="100"
+            step="1"
             v-model="RSVForm.num"
             required
-            placeholder="Enter number limit"
+            placeholder="Enter num limit"
           >
           </b-form-input>
         </b-form-group>
@@ -320,6 +338,29 @@
           <b-button type="reset" variant="danger">Reset</b-button>
         </b-button-group>
       </b-form>
+    </b-modal>
+    <b-modal
+      ref="ListMemberModal"
+      id="listmember-modal"
+      title="Members seclecting this reservation"
+      scrollable
+      hide-footer
+    >
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th scope="col">UserName</th>
+            <th scope="col">email</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(member, index) in members" :key="index">
+            <td>{{ member.username }}</td>
+            <td>{{ member.email }}</td>
+          </tr>
+        </tbody>
+      </table>
     </b-modal>
   </div>
 </template>
@@ -348,6 +389,7 @@ export default {
         username: '',
         email: '',
         password: '',
+        checkpassword: '',
       },
       RSVForm: {
         rsvname: '',
@@ -452,6 +494,7 @@ export default {
       this.SignUpForm.username = '';
       this.SignUpForm.email = '';
       this.SignUpForm.password = '';
+      this.SignUpForm.checkpassword = '';
       this.RSVForm.rsvname = '';
       this.RSVForm.num = '';
       this.RSVForm.time = '';
@@ -478,13 +521,19 @@ export default {
     onSignup(evt) {
       evt.preventDefault();
       this.$refs.SignUpModal.hide();
-      const payload = {
-        username: this.SignUpForm.username,
-        email: this.SignUpForm.email,
-        password: this.SignUpForm.password,
-      };
-      this.SignUp(payload);
-      this.initForm();
+      if (this.SignUpForm.password === this.SignUpForm.checkpassword) {
+        const payload = {
+          username: this.SignUpForm.username,
+          email: this.SignUpForm.email,
+          password: this.SignUpForm.password,
+        };
+        this.SignUp(payload);
+        this.initForm();
+      } else {
+        this.message = 'password not the same! please sign up again!';
+        this.showMessage = true;
+        this.onReset();
+      }
     },
     addRsv(evt) {
       evt.preventDefault();
