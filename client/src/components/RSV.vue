@@ -34,7 +34,7 @@
           class="btn btn-success btn-sm"
           v-if="ifSignIn_admin"
           @click="addRsv"
-          v-b-modal.makersv-modal
+          v-b-modal.addrsv-modal
         >
           Add Event
         </button>
@@ -224,15 +224,15 @@
       </b-form>
     </b-modal>
     <b-modal
-      ref="MakeRSVModal"
-      id="makersv-modal"
-      title="Make Reservation"
+      ref="AddRSVModal"
+      id="addrsv-modal"
+      title="Add Reservation"
       hide-footer
     >
       <b-form @submit="addRsv" @reset="onReset" class="w-100">
         <b-form-group
           id="form-rsvname-group"
-          label="RSVname:"
+          label="Reservation name:"
           label-for="form-rsvname-input"
         >
           <b-form-input
@@ -246,7 +246,7 @@
         </b-form-group>
         <b-form-group
           id="form-num-group"
-          label="num:"
+          label="Number Limit:"
           label-for="form-num-input"
         >
           <b-form-input
@@ -265,7 +265,7 @@
         </b-form-group>
         <b-form-group
           id="form-time-group"
-          label="Time:"
+          label="Date&Time:"
           label-for="form-time-input"
         >
           <b-form-timepicker
@@ -298,7 +298,6 @@
             id="form-rsvname-input"
             type="text"
             v-model="RSVForm.rsvname"
-            required
             placeholder="Enter Event name"
           >
           </b-form-input>
@@ -317,7 +316,6 @@
             max="100"
             step="1"
             v-model="RSVForm.num"
-            required
             placeholder="Enter num limit"
           >
           </b-form-input>
@@ -342,7 +340,7 @@
     <b-modal
       ref="ListMemberModal"
       id="listmember-modal"
-      title="Members seclecting this reservation"
+      title="Members seclected this reservation"
       scrollable
       hide-footer
     >
@@ -426,7 +424,7 @@ export default {
       const path = 'http://localhost:5000/login';
       axios.post(path, payload).then((res) => {
         this.user_data = res.data;
-        this.message = 'Successfully logged in!';
+        this.message = `Hi, ${this.user_data.username}!`;
         this.showMessage = true;
         if (res.data.is_admin === true) {
           this.ifSignIn_admin = true;
@@ -515,7 +513,7 @@ export default {
       evt.preventDefault();
       this.$refs.LoginModal.hide();
       this.$refs.SignUpModal.hide();
-      this.$refs.MakeRSVModal.hide();
+      this.$refs.AddRSVModal.hide();
       this.initForm();
     },
     onSignup(evt) {
@@ -537,7 +535,7 @@ export default {
     },
     addRsv(evt) {
       evt.preventDefault();
-      this.$refs.MakeRSVModal.hide();
+      this.$refs.AddRSVModal.hide();
       const payload = {
         rsv_name: this.RSVForm.rsvname,
         num_limit: this.RSVForm.num,
@@ -554,7 +552,7 @@ export default {
           },
         })
         .then(() => {
-          this.message = 'Successfully make reservation!';
+          this.message = 'Successfully added reservation!';
           this.showMessage = true;
           this.get_list();
         });

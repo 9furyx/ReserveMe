@@ -86,7 +86,7 @@ class Login(Resource):
         else:
             selected_uuid = ''
         
-        return {'access_token': access_token.decode('UTF-8'), 'refresh_token': refresh_token.decode('UTF-8'), 'selected_uuid': selected_uuid,'is_admin': is_admin}
+        return {'access_token': access_token.decode('UTF-8'), 'refresh_token': refresh_token.decode('UTF-8'), 'selected_uuid': selected_uuid,'username': user.username, 'is_admin': is_admin}
 
 
 class Logout(Resource):
