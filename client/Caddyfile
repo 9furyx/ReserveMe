@@ -1,0 +1,7 @@
+example.com {
+        root * /srv
+        file_server
+    tls {
+        protocols tls1.2 tls1.3
+    }
+}
