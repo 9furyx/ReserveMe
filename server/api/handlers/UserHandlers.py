@@ -52,15 +52,18 @@ class Login(Resource):
             return error.INVALID_INPUT_422
 
         user = User.query.filter_by(email=email).first()
-
+        if user is None:
+            return error.DOES_NOT_EXIST
         check_password_hash(password, user.password)
         if not check_password_hash(user.password, password):
             return error.DOES_NOT_EXIST
 
         if user.user_role == 'user':
             access_token = user.generate_token(0)
+            is_admin = False
         elif user.user_role == 'admin':
             access_token = user.generate_token(1)
+            is_admin = True
         else:
             return error.INVALID_INPUT_422
         if user.user_rev_id is not None:
@@ -78,7 +81,12 @@ class Login(Resource):
         refresh_token = jwt.encode(payload,
                                    os.environ['SECRET_KEY_REFRESH'],
                                    algorithm='HS256')
-        return {'access_token': access_token.decode('UTF-8'), 'refresh_token': refresh_token.decode('UTF-8'), 'selected_uuid': str(user.user_rev_id)}
+        if(user.user_rev_id is not None):
+            selected_uuid = str(user.user_rev_id)
+        else:
+            selected_uuid = ''
+        
+        return {'access_token': access_token.decode('UTF-8'), 'refresh_token': refresh_token.decode('UTF-8'), 'selected_uuid': selected_uuid,'username': user.username, 'is_admin': is_admin}
 
 
 class Logout(Resource):

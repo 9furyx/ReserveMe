@@ -14,7 +14,7 @@ def create_app():
     
     CORS(app, resources={r"/*": {"origins": "*"}})
 
-    app.config['DEBUG'] = True
+    app.config['DEBUG'] = False
 
     app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
 
@@ -28,10 +28,8 @@ def create_app():
     return app
 
 
-if __name__ == '__main__':
-
-    app = create_app()
-    db.create_all()
-    create_admin_user()
-    generate_routes(app)
-    app.run(port=5000, debug=True, host='localhost', use_reloader=True)
+app = create_app()
+db.create_all()
+create_admin_user()
+generate_routes(app)
+#app.run(port=5001, debug=False, host='localhost', use_reloader=True)
