@@ -5,11 +5,11 @@ A reservation system for devices maintenance
 ## Deployment
 Deploy this project wtih Docker Compose
 
-1. Modify database password variable `POSTGRES_PASSWORD` in db.env
+1. Modify database password variable `POSTGRES_PASSWORD` in `db.env`
 
-2. Modify jwt variable`SECRET_KEY` and `SECRET_KEY_REFRESH` in server/.env
+2. Modify jwt variable`SECRET_KEY` and `SECRET_KEY_REFRESH` in `server/.env`
 
-3. Change `example.com` in client/Caddyfile to your domain name
+3. Change `example.com` in `client/Caddyfile` and `client/.env` to your domain name
 
 4. In the main directory, run
 

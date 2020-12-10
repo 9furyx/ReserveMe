@@ -1,5 +1,6 @@
 example.com {
         root * /srv
+        reverse_proxy /api/* flask:5000
         file_server
     tls {
         protocols tls1.2 tls1.3

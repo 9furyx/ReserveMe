@@ -12,6 +12,7 @@ services:
   flask:
     build:
       context: ./server
+    container_name: flask
     expose:
       - 5000
     depends_on:
@@ -21,6 +22,7 @@ services:
   vue-caddy:
     build:
       context: ./client
+    container_name: vue-caddy
     ports:
       - 80:80
       - 443:443
