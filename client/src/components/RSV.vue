@@ -407,7 +407,7 @@ export default {
   },
   methods: {
     get_list() {
-      const path = 'http://localhost:5000/get_rsv_list';
+      const path = `http://${process.env.VUE_APP_BACK_END_HOST}:5000/get_rsv_list`;
       const token = this.user_data.access_token;
       axios
         .get(path, {
@@ -421,7 +421,7 @@ export default {
         });
     },
     login(payload) {
-      const path = 'http://localhost:5000/login';
+      const path = `http://${process.env.VUE_APP_BACK_END_HOST}:5000/login`;
       axios.post(path, payload).then((res) => {
         this.user_data = res.data;
         this.message = `Hi, ${this.user_data.username}!`;
@@ -435,7 +435,7 @@ export default {
       });
     },
     logout() {
-      const path = 'http://localhost:5000/logout';
+      const path = `http://${process.env.VUE_APP_BACK_END_HOST}:5000/logout`;
       const token = this.user_data.access_token;
       const payload = {
         refresh_token: this.user_data.refresh_token,
@@ -463,14 +463,14 @@ export default {
         });
     },
     SignUp(payload) {
-      const path = 'http://localhost:5000/signup';
+      const path = `http://${process.env.VUE_APP_BACK_END_HOST}:5000/signup`;
       axios.post(path, payload).then(() => {
         this.message = 'Successfully signed up!';
         this.showMessage = true;
       });
     },
     Get_Member(uuid) {
-      const path = 'http://localhost:5000/get_member_list';
+      const path = `http://${process.env.VUE_APP_BACK_END_HOST}:5000/get_member_list`;
       const token = this.user_data.access_token;
       const payload = {
         rsv_uuid: uuid,
@@ -541,7 +541,7 @@ export default {
         num_limit: this.RSVForm.num,
         due_date: this.RSVForm.date + this.RSVForm.time,
       };
-      const path = 'http://localhost:5000/add_srv';
+      const path = `http://${process.env.VUE_APP_BACK_END_HOST}:5000/add_srv`;
       const token = this.user_data.access_token;
 
       axios
@@ -571,7 +571,7 @@ export default {
         due_date: this.RSVForm.date + this.RSVForm.time,
       };
 
-      const path = 'http://localhost:5000/modify_rsv';
+      const path = `http://${process.env.VUE_APP_BACK_END_HOST}:5000/modify_rsv`;
       const token = this.user_data.access_token;
 
       axios
@@ -589,7 +589,7 @@ export default {
       this.initForm();
     },
     deleteRsv(uuid) {
-      const path = 'http://localhost:5000/delete_rsv';
+      const path = `http://${process.env.VUE_APP_BACK_END_HOST}:5000/delete_rsv`;
       const token = this.user_data.access_token;
       const payload = {
         rsv_uuid: uuid,
@@ -608,7 +608,7 @@ export default {
         });
     },
     cancleRsv(uuid) {
-      const path = 'http://localhost:5000/user_cancle_rsv';
+      const path = `http://${process.env.VUE_APP_BACK_END_HOST}:5000/user_cancle_rsv`;
       const token = this.user_data.access_token;
       const payload = {
         rsv_uuid: uuid,
@@ -630,7 +630,7 @@ export default {
         });
     },
     seclectRsv(uuid) {
-      const path = 'http://localhost:5000/user_make_rsv';
+      const path = `http://${process.env.VUE_APP_BACK_END_HOST}:5000/user_make_rsv`;
       const token = this.user_data.access_token;
       if (this.selected_uuid) {
         this.message = 'You can reserve only one event at once, please cancle first';
@@ -657,6 +657,7 @@ export default {
       }
     },
   },
-  created() {},
+  created() {
+  },
 };
 </script>
