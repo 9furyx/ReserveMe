@@ -28,7 +28,6 @@
             Signup
           </button>
         </b-button-group>
-
         <button
           type="button"
           class="btn btn-success btn-sm"
@@ -38,16 +37,26 @@
         >
           Add Event
         </button>
-
-        <button
-          type="button"
-          class="btn btn-primary"
-          v-if="ifSignIn_user || ifSignIn_admin"
-          @click="logout"
-          style="position: relative; top: -140px; left: 900px"
-        >
-          Logout
-        </button>
+        <b-button-group>
+          <button
+            type="button"
+            class="btn btn-primary"
+            v-if="ifSignIn_user || ifSignIn_admin"
+            @click="logout"
+            style="position: relative; top: -140px; left: 900px"
+          >
+            Logout
+          </button>
+          <button
+            type="button"
+            class="btn btn-danger"
+            v-b-modal.resetpassword-modal
+            v-if="ifSignIn_user || ifSignIn_admin"
+            style="position: relative; top: -140px; left: 900px"
+          >
+            ResetPassword
+          </button>
+        </b-button-group>
         <br /><br />
 
         <table class="table table-hover">
@@ -224,6 +233,76 @@
       </b-form>
     </b-modal>
     <b-modal
+      ref="ResetPasswordModal"
+      id="resetpassword-modal"
+      title="Reset Password"
+      hide-footer
+    >
+      <b-form @submit="onResetPassword" @reset="onReset" class="w-100">
+        <b-form-group
+          id="form-email-group"
+          label="Email:"
+          label-for="form-email-input"
+        >
+          <b-form-input
+            id="form-email-input"
+            type="email"
+            v-model="ResetPasswordForm.email"
+            required
+            placeholder="Enter Email"
+          >
+          </b-form-input>
+        </b-form-group>
+        <b-form-group
+          id="form-pw-group"
+          label="OldPassword:"
+          label-for="form-pw-input"
+        >
+          <b-form-input
+            id="form-pw-input"
+            type="password"
+            v-model="ResetPasswordForm.oldpassword"
+            required
+            placeholder="Enter Your Old Password"
+          >
+          </b-form-input>
+        </b-form-group>
+        <b-form-group
+          id="form-newpw-group"
+          label="NewPassword:"
+          label-for="form-newpw-input"
+        >
+          <b-form-input
+            id="form-newpw-input"
+            type="password"
+            v-model="ResetPasswordForm.newpassword"
+            required
+            placeholder="Enter Your New Password"
+          >
+          </b-form-input>
+        </b-form-group>
+        <b-form-group
+          id="form-rchpw-group"
+          label="Check password:"
+          label-for="form-rchpw-input"
+        >
+          <b-form-input
+            id="form-rchpw-input"
+            type="password"
+            v-model="ResetPasswordForm.checkpassword"
+            required
+            placeholder="Check Password"
+          >
+          </b-form-input>
+        </b-form-group>
+        <b-button-group>
+          <b-button type="submit" variant="primary">ResetPassword</b-button>
+          <b-button type="reset" variant="danger">Reset</b-button>
+        </b-button-group>
+      </b-form>
+    </b-modal>
+
+    <b-modal
       ref="AddRSVModal"
       id="addrsv-modal"
       title="Add Reservation"
@@ -395,6 +474,12 @@ export default {
         date: '',
         time: '',
       },
+      ResetPasswordForm: {
+        email: '',
+        oldpassword: '',
+        newpassword: '',
+        checkpassword: '',
+      },
       message: '',
       showMessage: false,
       ifSignIn_user: false,
@@ -497,6 +582,10 @@ export default {
       this.RSVForm.num = '';
       this.RSVForm.time = '';
       this.RSVForm.date = '';
+      this.ResetPasswordForm.oldpassword = '';
+      this.ResetPasswordForm.newpassword = '';
+      this.ResetPasswordForm.checkpassword = '';
+      this.ResetPasswordForm.email = '';
     },
     onSubmit(evt) {
       evt.preventDefault();
@@ -514,6 +603,7 @@ export default {
       this.$refs.LoginModal.hide();
       this.$refs.SignUpModal.hide();
       this.$refs.AddRSVModal.hide();
+      this.$refs.onResetPassword.hide();
       this.initForm();
     },
     onSignup(evt) {
@@ -656,8 +746,40 @@ export default {
           });
       }
     },
+    onResetPassword(evt) {
+      evt.preventDefault();
+      this.$refs.ResetPasswordModal.hide();
+      if (
+        this.ResetPasswordForm.newpassword === this.ResetPasswordForm.checkpassword
+      ) {
+        const payload = {
+          old_pass: this.ResetPasswordForm.oldpassword,
+          new_pass: this.ResetPasswordForm.newpassword,
+        };
+        this.ResetPassword(payload);
+        this.initForm();
+      } else {
+        this.message = 'password not the same! please reset password again!';
+        this.showMessage = true;
+        this.onReset();
+      }
+    },
+    ResetPassword(payload) {
+      const path = `${process.env.VUE_APP_BACK_END_HOST}/api/reset_pw`;
+      const token = this.user_data.access_token;
+      axios
+        .post(path, payload, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token} `,
+          },
+        })
+        .then(() => {
+          this.message = 'Successfully reset password!';
+          this.showMessage = true;
+        });
+    },
   },
-  created() {
-  },
+  created() {},
 };
 </script>
