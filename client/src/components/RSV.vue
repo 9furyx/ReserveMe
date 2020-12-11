@@ -95,7 +95,7 @@
                   <button
                     type="button"
                     class="btn btn-success btn-sm"
-                    v-if="ifSignIn_user && show_select_button"
+                    v-if="ifSignIn_user && !user_data.selected_uuid"
                     @click="seclectRsv(rsv.rsv_uuid)"
                   >
                     Select
@@ -103,7 +103,7 @@
                   <button
                     type="button"
                     class="btn btn-danger btn-sm"
-                    v-if="ifSignIn_user && rsv.rsv_uuid == selected_uuid"
+                    v-if="ifSignIn_user && rsv.rsv_uuid == user_data.selected_uuid"
                     @click="cancleRsv(rsv.rsv_uuid)"
                   >
                     Cancle
@@ -625,7 +625,7 @@ export default {
           this.message = 'successfully cancled!';
           this.show_select_button = true;
           this.showMessage = true;
-          this.selected_uuid = '';
+          this.user_data.selected_uuid = '';
           this.get_list();
         });
     },
@@ -650,7 +650,7 @@ export default {
           .then(() => {
             this.message = 'successfully seclected!';
             this.showMessage = true;
-            this.selected_uuid = uuid;
+            this.user_data.selected_uuid = uuid;
             this.show_select_button = false;
             this.get_list();
           });
