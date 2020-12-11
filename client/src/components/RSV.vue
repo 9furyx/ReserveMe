@@ -5,14 +5,14 @@
         <h1>ReserveMe Reservation System</h1>
         <hr />
         <br /><br />
-        <alert :message="message" v-if="showMessage"></alert>
+        <alert :message="message" :alertvariant="alertvariant" v-if="showMessage"></alert>
 
         <b-button-group>
           <button
             type="button"
-            class="btn btn-success btn-sm"
+            class="btn btn-success"
             v-b-modal.login-modal
-            style="position: relative; top: -140px; left: 900px"
+            style="position: relative; top: 0px; left: 600px"
             v-if="!ifSignIn_user && !ifSignIn_admin"
           >
             Login
@@ -23,31 +23,42 @@
             class="btn btn-primary"
             v-b-modal.signup-modal
             v-if="!ifSignIn_user && !ifSignIn_admin"
-            style="position: relative; top: -140px; left: 900px"
+            style="position: relative; top: 0px; left: 600px"
           >
             Signup
           </button>
         </b-button-group>
-
         <button
           type="button"
-          class="btn btn-success btn-sm"
+          class="btn btn-success"
           v-if="ifSignIn_admin"
           @click="addRsv"
           v-b-modal.addrsv-modal
+          style="position: relative; top: 0px; left: 15px"
+
         >
           Add Event
         </button>
-
-        <button
-          type="button"
-          class="btn btn-primary"
-          v-if="ifSignIn_user || ifSignIn_admin"
-          @click="logout"
-          style="position: relative; top: -140px; left: 900px"
-        >
-          Logout
-        </button>
+        <b-button-group>
+          <button
+            type="button"
+            class="btn btn-primary"
+            v-if="ifSignIn_user || ifSignIn_admin"
+            @click="logout"
+            style="position: relative; top: 0px; left: 600px"
+          >
+            Logout
+          </button>
+          <button
+            type="button"
+            class="btn btn-success"
+            v-b-modal.resetpassword-modal
+            v-if="ifSignIn_user || ifSignIn_admin"
+            style="position: relative; top: 0px; left: 600px"
+          >
+            Change Password
+          </button>
+        </b-button-group>
         <br /><br />
 
         <table class="table table-hover">
@@ -95,7 +106,7 @@
                   <button
                     type="button"
                     class="btn btn-success btn-sm"
-                    v-if="ifSignIn_user && show_select_button"
+                    v-if="ifSignIn_user && !user_data.selected_uuid"
                     @click="seclectRsv(rsv.rsv_uuid)"
                   >
                     Select
@@ -103,7 +114,7 @@
                   <button
                     type="button"
                     class="btn btn-danger btn-sm"
-                    v-if="ifSignIn_user && rsv.rsv_uuid == selected_uuid"
+                    v-if="ifSignIn_user && rsv.rsv_uuid == user_data.selected_uuid"
                     @click="cancleRsv(rsv.rsv_uuid)"
                   >
                     Cancle
@@ -224,6 +235,62 @@
       </b-form>
     </b-modal>
     <b-modal
+      ref="ResetPasswordModal"
+      id="resetpassword-modal"
+      title="Reset Password"
+      hide-footer
+    >
+      <b-form @submit="onResetPassword" @reset="onReset" class="w-100">
+        <b-form-group
+          id="form-pw-group"
+          label="OldPassword:"
+          label-for="form-pw-input"
+        >
+          <b-form-input
+            id="form-pw-input"
+            type="password"
+            v-model="ResetPasswordForm.oldpassword"
+            required
+            placeholder="Enter Your Old Password"
+          >
+          </b-form-input>
+        </b-form-group>
+        <b-form-group
+          id="form-newpw-group"
+          label="NewPassword:"
+          label-for="form-newpw-input"
+        >
+          <b-form-input
+            id="form-newpw-input"
+            type="password"
+            v-model="ResetPasswordForm.newpassword"
+            required
+            placeholder="Enter Your New Password"
+          >
+          </b-form-input>
+        </b-form-group>
+        <b-form-group
+          id="form-rchpw-group"
+          label="Check password:"
+          label-for="form-rchpw-input"
+        >
+          <b-form-input
+            id="form-rchpw-input"
+            type="password"
+            v-model="ResetPasswordForm.checkpassword"
+            required
+            placeholder="Check Password"
+          >
+          </b-form-input>
+        </b-form-group>
+        <b-button-group>
+          <b-button type="submit" variant="primary">Confirm</b-button>
+          <b-button type="reset" variant="danger">Cancle</b-button>
+        </b-button-group>
+      </b-form>
+    </b-modal>
+
+    <b-modal
       ref="AddRSVModal"
       id="addrsv-modal"
       title="Add Reservation"
@@ -271,9 +338,13 @@
           <b-form-timepicker
             v-model="RSVForm.time"
             hourCycle="h23"
+            v-validate="'required'"
           ></b-form-timepicker>
           <p>{{ RSVForm.time }}</p>
-          <b-form-datepicker v-model="RSVForm.date"></b-form-datepicker>
+          <b-form-datepicker
+            v-model="RSVForm.date"
+            v-validate="'required'"
+          ></b-form-datepicker>
           <p>{{ RSVForm.date }}</p>
         </b-form-group>
         <b-button-group>
@@ -395,7 +466,13 @@ export default {
         date: '',
         time: '',
       },
+      ResetPasswordForm: {
+        oldpassword: '',
+        newpassword: '',
+        checkpassword: '',
+      },
       message: '',
+      alertvariant: '',
       showMessage: false,
       ifSignIn_user: false,
       ifSignIn_admin: false,
@@ -424,6 +501,8 @@ export default {
       const path = `${process.env.VUE_APP_BACK_END_HOST}/api/login`;
       axios.post(path, payload).then((res) => {
         this.user_data = res.data;
+        this.user_email = payload.email;
+        this.alertvariant = 'success';
         this.message = `Hi, ${this.user_data.username}!`;
         this.showMessage = true;
         if (res.data.is_admin === true) {
@@ -433,6 +512,11 @@ export default {
         }
         this.get_list();
       });
+      if (this.user_email === '') {
+        this.alertvariant = 'danger';
+        this.message = 'Email or Password incorret';
+        this.showMessage = true;
+      }
     },
     logout() {
       const path = `${process.env.VUE_APP_BACK_END_HOST}/api/logout`;
@@ -448,15 +532,16 @@ export default {
           },
         })
         .then((res) => {
-          this.logout_dat = res.data;
-          this.message = 'Successfuly logged out!';
-          if (this.logout_dat.status === 'invalidated') {
+          if (res.status === 200) {
             this.user_data = '';
             this.rsvs = '';
             this.user_email = '';
-            this.showMessage = 'Successfuly logged out!';
+            this.alertvariant = 'success';
+            this.message = 'Successfuly logged out!';
+            this.showMessage = true;
           } else {
-            this.showMessage = 'Log out failed.';
+            this.message = 'Log out failed.';
+            this.showMessage = true;
           }
           this.ifSignIn_user = false;
           this.ifSignIn_admin = false;
@@ -465,6 +550,7 @@ export default {
     SignUp(payload) {
       const path = `${process.env.VUE_APP_BACK_END_HOST}/api/signup`;
       axios.post(path, payload).then(() => {
+        this.alertvariant = 'success';
         this.message = 'Successfully signed up!';
         this.showMessage = true;
       });
@@ -497,11 +583,14 @@ export default {
       this.RSVForm.num = '';
       this.RSVForm.time = '';
       this.RSVForm.date = '';
+      this.ResetPasswordForm.oldpassword = '';
+      this.ResetPasswordForm.newpassword = '';
+      this.ResetPasswordForm.checkpassword = '';
+      this.ResetPasswordForm.email = '';
     },
     onSubmit(evt) {
       evt.preventDefault();
       this.$refs.LoginModal.hide();
-      this.user_email = this.LoginForm.email;
       const payload = {
         email: this.LoginForm.email,
         password: this.LoginForm.password,
@@ -510,11 +599,12 @@ export default {
       this.initForm();
     },
     onReset(evt) {
+      this.initForm();
       evt.preventDefault();
       this.$refs.LoginModal.hide();
       this.$refs.SignUpModal.hide();
       this.$refs.AddRSVModal.hide();
-      this.initForm();
+      this.$refs.onResetPassword.hide();
     },
     onSignup(evt) {
       evt.preventDefault();
@@ -528,7 +618,8 @@ export default {
         this.SignUp(payload);
         this.initForm();
       } else {
-        this.message = 'password not the same! please sign up again!';
+        this.alertvariant = 'warning';
+        this.message = 'Passwords not matched, please try again';
         this.showMessage = true;
         this.onReset();
       }
@@ -552,7 +643,8 @@ export default {
           },
         })
         .then(() => {
-          this.message = 'Successfully added reservation!';
+          this.alertvariant = 'success';
+          this.message = 'Successfully added event!';
           this.showMessage = true;
           this.get_list();
         });
@@ -582,7 +674,8 @@ export default {
           },
         })
         .then(() => {
-          this.message = 'Successfully modify reservation!';
+          this.alertvariant = 'success';
+          this.message = 'Successfully modified!';
           this.showMessage = true;
           this.get_list();
         });
@@ -602,7 +695,8 @@ export default {
           },
         })
         .then(() => {
-          this.message = 'successfully cancled!';
+          this.alertvariant = 'success';
+          this.message = 'Successfully deleted!';
           this.showMessage = true;
           this.get_list();
         });
@@ -622,10 +716,11 @@ export default {
           },
         })
         .then(() => {
+          this.alertvariant = 'success';
           this.message = 'successfully cancled!';
           this.show_select_button = true;
           this.showMessage = true;
-          this.selected_uuid = '';
+          this.user_data.selected_uuid = '';
           this.get_list();
         });
     },
@@ -633,6 +728,7 @@ export default {
       const path = `${process.env.VUE_APP_BACK_END_HOST}/api/user_make_rsv`;
       const token = this.user_data.access_token;
       if (this.selected_uuid) {
+        this.alertvariant = 'warning';
         this.message = 'You can reserve only one event at once, please cancle first';
         this.showMessage = true;
       } else {
@@ -648,16 +744,58 @@ export default {
             },
           })
           .then(() => {
+            this.alertvariant = 'success';
             this.message = 'successfully seclected!';
             this.showMessage = true;
-            this.selected_uuid = uuid;
+            this.user_data.selected_uuid = uuid;
             this.show_select_button = false;
             this.get_list();
           });
       }
     },
+    onResetPassword(evt) {
+      evt.preventDefault();
+      this.$refs.ResetPasswordModal.hide();
+      if (
+        this.ResetPasswordForm.newpassword === this.ResetPasswordForm.checkpassword
+      ) {
+        const payload = {
+          old_pass: this.ResetPasswordForm.oldpassword,
+          new_pass: this.ResetPasswordForm.newpassword,
+          email: this.user_email,
+        };
+        this.ResetPassword(payload);
+        this.initForm();
+      } else {
+        this.alertvariant = 'warning';
+        this.message = 'Passwords not matched, please try again';
+        this.showMessage = true;
+        this.onReset();
+      }
+    },
+    ResetPassword(payload) {
+      const path = `${process.env.VUE_APP_BACK_END_HOST}/api/reset_pw`;
+      const token = this.user_data.access_token;
+      axios
+        .post(path, payload, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token} `,
+          },
+        })
+        .then((res) => {
+          if (res.data.status === 'password changed.') {
+            this.alertvariant = 'success';
+            this.message = 'Your password has changed!';
+            this.showMessage = true;
+          } else {
+            this.alertvariant = 'warning';
+            this.message = 'Password incorrect';
+            this.showMessage = true;
+          }
+        });
+    },
   },
-  created() {
-  },
+  created() {},
 };
 </script>
