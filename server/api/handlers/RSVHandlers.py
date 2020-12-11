@@ -29,7 +29,6 @@ class ADD_RSV(Resource):
     @auth.login_required
     @role_required.permission(1)
     def post():
-        print("dawda")
         try:
             rsv_name, due_date, num_limit = request.json.get('rsv_name').strip(
             ), request.json.get('due_date').strip(), request.json.get('num_limit').strip()
@@ -61,7 +60,6 @@ class DELETE_RSV(Resource):
         if rsv_uuid is None:
             return error.INVALID_INPUT_422
         rsv = Reservation.query.filter_by(rsv_uuid=rsv_uuid).first()
-        print(rsv.rsv_uuid)
         db.session.delete(rsv)
         db.session.commit()
         return {'status': 'Reservation deleted'}
@@ -108,7 +106,6 @@ class GET_MEMBER_LIST(Resource):
         users = User.query.all()
         list = []
         for user in users:
-            print(user.user_rev_id)
             if str(user.user_rev_id) == str(rsv_uuid):
                 list.append({"username": user.username, "email": user.email})
         return list

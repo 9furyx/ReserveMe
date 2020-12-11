@@ -54,7 +54,7 @@ class Login(Resource):
         user = User.query.filter_by(email=email).first()
         if user is None:
             return error.DOES_NOT_EXIST
-        check_password_hash(password, user.password)
+
         if not check_password_hash(user.password, password):
             return error.DOES_NOT_EXIST
 
@@ -126,14 +126,12 @@ class ResetPassword(Resource):
     @auth.login_required
     def post(self):
 
-        old_pass, new_pass = request.json.get(
-            'old_pass'), request.json.get('new_pass')
+        old_pass, new_pass, email = request.json.get(
+            'old_pass'), request.json.get('new_pass'), request.json.get('email')
 
-        user = User.query.filter_by(email=g.user).first()
-
-        if check_password_hash(user.password, old_pass):
+        user = User.query.filter_by(email=email).first()
+        if user is not None and not check_password_hash(user.password, old_pass):
             return {'status': 'old password does not match.'}
-
         new_hashed_password = generate_password_hash(new_pass, method='sha256')
         user.password = new_hashed_password
         db.session.commit()
