@@ -3,8 +3,11 @@ A reservation system for devices maintenance
 (This is a learning project of front-end and back-end)
 
 ## Demo page
-https://reserveme.tk/
+https://reserveme.ml/
 
+admin Email: admin@example.com
+
+password: uv3HtezRWmqSbaBgrMwYtXNE
 
 ## Deployment
 Deploy this project wtih Docker Compose
